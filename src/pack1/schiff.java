@@ -5,7 +5,6 @@ public class schiff {
     private int laenge;
     private int treffer;
 
-    // Konstruktor für ein neues Schiff
     public schiff(String name, int laenge) {
         this.name = name;
         this.laenge = laenge;
