@@ -1,0 +1,39 @@
+package pack1;
+
+public class schiff {
+    private String name;
+    private int laenge;
+    private int treffer;
+
+    // Konstruktor für ein neues Schiff
+    public schiff(String name, int laenge) {
+        this.name = name;
+        this.laenge = laenge;
+        this.treffer = 0;
+    }
+
+    // Wird aufgerufen, wenn ein Segment dieses Schiffs getroffen wird
+    public void registriereTreffer() {
+        if (treffer < laenge) {
+            treffer++;
+        }
+    }
+
+    // Prüft, ob das Schiff komplett zerstörte wurde
+    public boolean istVersenkt() {
+        return treffer >= laenge;
+    }
+
+    // Getter-Methoden, um Infos abzufragen
+    public String getName() {
+        return name;
+    }
+
+    public int getLaenge() {
+        return laenge;
+    }
+
+    public int getTreffer() {
+        return treffer;
+    }
+}
