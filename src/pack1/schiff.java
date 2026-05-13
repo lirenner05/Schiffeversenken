@@ -24,7 +24,6 @@ public class schiff {
         return treffer >= laenge;
     }
 
-    // Getter-Methoden, um Infos abzufragen
     public String getName() {
         return name;
     }
