@@ -160,7 +160,7 @@ public class GUI extends JFrame {
         checkGameEnd();
     }
 
-    // Hilfsmethode zur Überprüfung und Anzeige des Spielendes
+    // Hilfsmethode zur Überprüfung und Anzeige des Spielendes.
     private boolean checkGameEnd() {
         if (spiellogik.hatSpielerGewonnen()) {
             statusLabel.setText("SIEG! Du hast alle gegnerischen Schiffe versenkt!");
