@@ -1,48 +1,134 @@
 package pack1;
 
+import java.util.ArrayList;
+
 public class logik {
     // 0 = Wasser, 1 = Schiff, 2 = Fehlschuss, 3 = Treffer
     private int[][] playerBoard = new int[10][10];
     private int[][] opponentBoard = new int[10][10];
 
-    public logik() {
-        // Zum Start platzieren wir testweise ein paar Schiffe fest im Code,
-        // damit wir prüfen können, ob Treffer richtig erkannt werden.
-        
-        // Platziere ein kleines Schiff beim Spieler (Reihe 2, Spalte 3 und 4)
-        playerBoard[2][3] = 1;
-        playerBoard[2][4] = 1;
+    // Schiffs-Konfigurationen für das Platzieren
+    private int[] schiffsLaengen = {5, 4, 3, 3, 2}; // Ein 5er, ein 4er, zwei 3er, ein 2er
+    private int aktuellesSchiffIndex = 0; // Welches Schiff platziert der Spieler gerade?
+    private boolean istHorizontal = true; // Richtung für das Platzieren
 
-        // Platziere ein kleines Schiff beim Gegner (Reihe 5, Spalte 5 und 6)
-        opponentBoard[5][5] = 1;
-        opponentBoard[5][6] = 1;
+    public logik() {
+        // Die Arrays starten automatisch komplett mit 0 (Wasser).
+        // Wir rufen hier eine Methode auf, die die KI-Schiffe automatisch zufällig versteckt.
+        generiereKISchiffeZufaellig();
+    }
+
+    // Ändert die Ausrichtung beim Drücken einer Taste/Button
+    public void toggleRichtung() {
+        istHorizontal = !istHorizontal;
+    }
+
+    public boolean getIstHorizontal() {
+        return istHorizontal;
+    }
+
+    // Gibt die Länge des Schiffes zurück, das der Spieler GERADE setzen muss
+    public int getAktuelleSchiffsLaenge() {
+        if (aktuellesSchiffIndex < schiffsLaengen.length) {
+            return schiffsLaengen[aktuellesSchiffIndex];
+        }
+        return 0; // Alle Schiffe platziert
+    }
+
+    public boolean alleSchiffePlatziert() {
+        return aktuellesSchiffIndex >= schiffsLaengen.length;
     }
 
     /**
-     * Verarbeitet einen Schuss auf das gegnerische Feld.
-     * @return 1 für Fehlschuss, 2 für Treffer, 0 wenn bereits beschossen
+     * Versucht, das aktuelle Schiff des Spielers auf dem Feld zu platzieren.
+     * @return true, wenn das Platzieren erfolgreich war.
      */
+    public boolean platziereSpielerSchiff(int row, int col) {
+        if (alleSchiffePlatziert()) return false;
+
+        int laenge = schiffsLaengen[aktuellesSchiffIndex];
+
+        // 1. Prüfen, ob das Schiff ins Spielfeld passt und Platz frei ist
+        if (istHorizontal) {
+            if (col + laenge > 10) return false; // Steht rechts über
+            for (int i = 0; i < laenge; i++) {
+                if (playerBoard[row][col + i] != 0) return false; // Feld besetzt
+            }
+            // 2. Schiff eintragen
+            for (int i = 0; i < laenge; i++) {
+                playerBoard[row][col + i] = 1;
+            }
+        } else { // Vertikal
+            if (row + laenge > 10) return false; // Steht unten über
+            for (int i = 0; i < laenge; i++) {
+                if (playerBoard[row + i][col] != 0) return false; // Feld besetzt
+            }
+            // 2. Schiff eintragen
+            for (int i = 0; i < laenge; i++) {
+                playerBoard[row + i][col] = 1;
+            }
+        }
+
+        // Nächstes Schiff aktivieren
+        aktuellesSchiffIndex++;
+        return true;
+    }
+
+    // Hilfsmethode: Platziert die KI-Schiffe vollautomatisch und zufällig
+    private void generiereKISchiffeZufaellig() {
+        java.util.Random rand = new java.util.Random();
+        for (int laenge : schiffsLaengen) {
+            boolean erfolgreich = false;
+            while (!erfolgreich) {
+                int r = rand.nextInt(10);
+                int c = rand.nextInt(10);
+                boolean horiz = rand.nextBoolean();
+
+                if (horiz) {
+                    if (c + laenge <= 10) {
+                        boolean frei = true;
+                        for (int i = 0; i < laenge; i++) {
+                            if (opponentBoard[r][c + i] != 0) frei = false;
+                        }
+                        if (frei) {
+                            for (int i = 0; i < laenge; i++) opponentBoard[r][c + i] = 1;
+                            erfolgreich = true;
+                        }
+                    }
+                } else {
+                    if (r + laenge <= 10) {
+                        boolean frei = true;
+                        for (int i = 0; i < laenge; i++) {
+                            if (opponentBoard[r + i][c] != 0) frei = false;
+                        }
+                        if (frei) {
+                            for (int i = 0; i < laenge; i++) opponentBoard[r + i][c] = 1;
+                            erfolgreich = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public int shootAtOpponent(int row, int col) {
         if (opponentBoard[row][col] == 0) {
-            opponentBoard[row][col] = 2; // Fehlschuss merken
+            opponentBoard[row][col] = 2;
             return 1; 
         } else if (opponentBoard[row][col] == 1) {
-            opponentBoard[row][col] = 3; // Treffer merken
+            opponentBoard[row][col] = 3;
             return 2;
         }
-        return 0; // Feld wurde schon mal beschossen
+        return 0;
     }
 
-    /**
-     * Verarbeitet den Schuss der KI auf das Spieler-Feld.
-     */
     public int shootAtPlayer(int row, int col) {
         if (playerBoard[row][col] == 0) {
             playerBoard[row][col] = 2;
-            return 1; // Fehlschuss
+            return 1;
         } else if (playerBoard[row][col] == 1) {
             playerBoard[row][col] = 3;
-            return 2; // Treffer
+            return 2;
         }
         return 0;
     }
