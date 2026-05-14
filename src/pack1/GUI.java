@@ -28,13 +28,14 @@ public class GUI extends JFrame {
         JPanel fieldContainer = new JPanel(new GridLayout(1, 2, 30, 0));
         fieldContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // In der Setzphase ist DEIN Feld klickbar, das GEGNER-Feld gesperrt
+        // In der Setzphase ist DEIN Feld klickbar
         playerField = new feld("Dein Spielfeld", true, e -> {
             Point koordinaten = (Point) e.getSource();
             handleShipPlacement(koordinaten.x, koordinaten.y);
         });
         
-        opponentField = new feld("Gegnerisches Feld (KI)", false, e -> {
+        // REPARATUR: Hier das zweite Argument von false auf true gesetzt, damit Klicks ankommen!
+        opponentField = new feld("Gegnerisches Feld (KI)", true, e -> {
             Point koordinaten = (Point) e.getSource();
             handleAttack(koordinaten.x, koordinaten.y);
         });
@@ -103,9 +104,6 @@ public class GUI extends JFrame {
     private void starteKampfphase() {
         updateStatusText();
         rotationButton.setEnabled(false); // Ausrichtungs-Button deaktivieren
-        
-        // Wichtig: Wir müssten hier streng genommen die Klickbarkeit in der 'feld'-Klasse umschalten.
-        // Für den schnellen Übergang erlauben wir Angriffe in handleAttack nur, wenn alle platziert sind.
     }
 
     // Verarbeitet die Klicks beim Angreifen (Rechtes Feld)
@@ -118,11 +116,38 @@ public class GUI extends JFrame {
         if (result == 1) { 
             opponentField.setZellenFarbe(r, c, Color.LIGHT_GRAY); 
             statusLabel.setText("Fehlschuss auf Reihe " + (r + 1) + ", Spalte " + (c + 1));
+            // Gültiger Zug vorbei -> KI schlägt zurück
+            executeAiTurn();
         } else if (result == 2) { 
             opponentField.setZellenFarbe(r, c, Color.RED); 
             statusLabel.setText("TREFFER auf Reihe " + (r + 1) + ", Spalte " + (c + 1) + "!");
+            // Gültiger Zug vorbei -> KI schlägt zurück
+            executeAiTurn();
         } else {
-            statusLabel.setText("Hier hast du schon hingeschossen!");
+            statusLabel.setText("Hier hast du schon hingeschossen! Wähle ein anderes Feld.");
         }
     }
-}
+
+    // Die KI wählt ein zufälliges Feld auf deinem Brett und feuert
+    private void executeAiTurn() {
+        java.util.Random rand = new java.util.Random();
+        boolean gecoost = false;
+
+        // Die KI sucht so lange, bis sie ein noch unbeschossenes Feld findet
+        while (!gecoost) {
+            int aiRow = rand.nextInt(10);
+            int aiCol = rand.nextInt(10);
+
+            int result = spiellogik.shootAtPlayer(aiRow, aiCol);
+
+            if (result == 1) { // KI wirft auf Wasser
+                playerField.setZellenFarbe(aiRow, aiCol, Color.LIGHT_GRAY);
+                gecoost = true;
+            } else if (result == 2) { // KI trifft dein Schiff
+                playerField.setZellenFarbe(aiRow, aiCol, Color.RED);
+                gecoost = true;
+            }
+            // Wenn result == 0, hat die KI das Feld schon mal beschossen und die Schleife läuft weiter
+        }
+    }
+} // REPARATUR: Diese schließende Klammer für die Klasse hat am Ende gefehlt!
