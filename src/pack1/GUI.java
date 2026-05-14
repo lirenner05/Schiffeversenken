@@ -34,7 +34,7 @@ public class GUI extends JFrame {
             handleShipPlacement(koordinaten.x, koordinaten.y);
         });
         
-        // REPARATUR: Hier das zweite Argument von false auf true gesetzt, damit Klicks ankommen!
+        // Das gegnerische Feld nimmt Klicks an, wertet sie aber erst in handleAttack nach der Setzphase aus
         opponentField = new feld("Gegnerisches Feld (KI)", true, e -> {
             Point koordinaten = (Point) e.getSource();
             handleAttack(koordinaten.x, koordinaten.y);
@@ -110,18 +110,25 @@ public class GUI extends JFrame {
     private void handleAttack(int r, int c) {
         // Angriffe blockieren, solange Schiffe noch gesetzt werden
         if (!spiellogik.alleSchiffePlatziert()) return;
+        
+        // Abbrechen, wenn das Spiel schon vorbei ist
+        if (spiellogik.hatSpielerGewonnen() || spiellogik.hatKiGewonnen()) return;
 
         int result = spiellogik.shootAtOpponent(r, c);
 
         if (result == 1) { 
             opponentField.setZellenFarbe(r, c, Color.LIGHT_GRAY); 
             statusLabel.setText("Fehlschuss auf Reihe " + (r + 1) + ", Spalte " + (c + 1));
-            // Gültiger Zug vorbei -> KI schlägt zurück
+            
+            if (checkGameEnd()) return; 
+            
             executeAiTurn();
         } else if (result == 2) { 
             opponentField.setZellenFarbe(r, c, Color.RED); 
             statusLabel.setText("TREFFER auf Reihe " + (r + 1) + ", Spalte " + (c + 1) + "!");
-            // Gültiger Zug vorbei -> KI schlägt zurück
+            
+            if (checkGameEnd()) return; 
+            
             executeAiTurn();
         } else {
             statusLabel.setText("Hier hast du schon hingeschossen! Wähle ein anderes Feld.");
@@ -147,7 +154,23 @@ public class GUI extends JFrame {
                 playerField.setZellenFarbe(aiRow, aiCol, Color.RED);
                 gecoost = true;
             }
-            // Wenn result == 0, hat die KI das Feld schon mal beschossen und die Schleife läuft weiter
         }
+        
+        // Prüfen, ob die KI mit diesem Schuss gewonnen hat
+        checkGameEnd();
     }
-} // REPARATUR: Diese schließende Klammer für die Klasse hat am Ende gefehlt!
+
+    // Hilfsmethode zur Überprüfung und Anzeige des Spielendes
+    private boolean checkGameEnd() {
+        if (spiellogik.hatSpielerGewonnen()) {
+            statusLabel.setText("SIEG! Du hast alle gegnerischen Schiffe versenkt!");
+            JOptionPane.showMessageDialog(this, "Herzlichen Glückwunsch! Du hast gewonnen!", "Spiel vorbei", JOptionPane.INFORMATION_MESSAGE);
+            return true;
+        } else if (spiellogik.hatKiGewonnen()) {
+            statusLabel.setText("NIEDERLAGE! Die KI hat deine Flotte zerstört.");
+            JOptionPane.showMessageDialog(this, "Schade! Die KI war schneller.", "Spiel vorbei", JOptionPane.WARNING_MESSAGE);
+            return true;
+        }
+        return false;
+    }
+}

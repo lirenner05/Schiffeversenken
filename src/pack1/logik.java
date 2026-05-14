@@ -12,6 +12,10 @@ public class logik {
     private int aktuellesSchiffIndex = 0; // Welches Schiff platziert der Spieler gerade?
     private boolean istHorizontal = true; // Richtung für das Platzieren
 
+    private int spielerTreffer = 0;
+    private int kiTreffer = 0;
+    private final int MAX_TREFFER = 17;
+
     public logik() {
         // Die Arrays starten automatisch komplett mit 0 (Wasser).
         // Wir rufen hier eine Methode auf, die die KI-Schiffe automatisch zufällig versteckt.
@@ -117,6 +121,7 @@ public class logik {
             return 1; 
         } else if (opponentBoard[row][col] == 1) {
             opponentBoard[row][col] = 3;
+            spielerTreffer++;
             return 2;
         }
         return 0;
@@ -128,8 +133,20 @@ public class logik {
             return 1;
         } else if (playerBoard[row][col] == 1) {
             playerBoard[row][col] = 3;
+            kiTreffer++;
             return 2;
         }
         return 0;
     }
+
+// NEU: Prüft, ob der Spieler alle gegnerischen Segmente getroffen hat
+    public boolean hatSpielerGewonnen() {
+        return spielerTreffer >= MAX_TREFFER;
+    }
+
+    // NEU: Prüft, ob die KI alle Spieler-Segmente getroffen hat
+    public boolean hatKiGewonnen() {
+        return kiTreffer >= MAX_TREFFER;
+    }
 }
+
